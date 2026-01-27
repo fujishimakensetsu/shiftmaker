@@ -186,14 +186,15 @@
             box-shadow: var(--shadow-card);
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             animation: fadeInUp 0.8s ease-out both;
             overflow: hidden;
+            will-change: transform;
         }
 
         .card:hover {
             box-shadow: var(--shadow-hover);
-            transform: translateY(-4px);
+            transform: translateY(-2px);
         }
 
         .card-header {
@@ -225,6 +226,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            will-change: transform;
         }
 
         .btn::before {
@@ -237,12 +239,19 @@
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.3);
             transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+            transition: width 0.5s ease, height 0.5s ease;
+            pointer-events: none;
         }
 
         .btn:hover::before {
-            width: 300px;
-            height: 300px;
+            width: 250px;
+            height: 250px;
+        }
+
+        .btn:active::before {
+            transition: none;
+            width: 0;
+            height: 0;
         }
 
         .btn-primary {
@@ -547,13 +556,17 @@
             border-radius: var(--border-radius-lg);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(10px);
-            animation: modalSlideIn 0.3s ease-out;
+            will-change: transform, opacity;
+        }
+
+        .modal.show .modal-content {
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes modalSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(-50px) scale(0.9);
+                transform: translateY(-30px) scale(0.95);
             }
             to {
                 opacity: 1;
@@ -610,6 +623,7 @@
             border: 2px solid #E8EDF5;
             cursor: pointer;
             transition: all 0.2s ease;
+            will-change: transform, border-color;
         }
 
         .form-check-input:checked {
@@ -620,6 +634,12 @@
         .form-check-input:hover {
             border-color: #9B7EDE;
             transform: scale(1.05);
+        }
+
+        .form-check-input:focus {
+            border-color: #9B7EDE;
+            box-shadow: 0 0 0 3px rgba(155, 126, 222, 0.15);
+            outline: none;
         }
 
         .form-check-label {

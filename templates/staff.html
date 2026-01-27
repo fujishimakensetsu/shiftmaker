@@ -82,7 +82,7 @@
 
                     <div class="mb-3">
                         <label for="staffType" class="form-label">属性</label>
-                        <select class="form-select" id="staffType">
+                        <select class="form-select" id="staffType" onchange="toggleAssignedLocationsSection()">
                             <option value="社員">社員</option>
                             <option value="パート">パート</option>
                         </select>
@@ -242,9 +242,6 @@
         const section = document.getElementById('assignedLocationsSection');
         section.style.display = staffType === 'パート' ? 'block' : 'none';
     }
-
-    // 属性変更時に所属拠点セクションの表示/非表示を切り替え
-    document.getElementById('staffType').addEventListener('change', toggleAssignedLocationsSection);
 
     function showAddModal() {
         document.getElementById('modalTitle').textContent = 'スタッフ追加';

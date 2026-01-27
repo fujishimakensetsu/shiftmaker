@@ -145,11 +145,12 @@
         border-radius: 8px;
         border: 2px solid transparent;
         font-weight: 700;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         cursor: pointer;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         position: relative;
         overflow: hidden;
+        will-change: transform;
     }
 
     .exception-btn::before {
@@ -162,21 +163,23 @@
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.5);
         transform: translate(-50%, -50%);
-        transition: width 0.4s, height 0.4s;
+        transition: width 0.3s ease, height 0.3s ease;
+        pointer-events: none;
     }
 
     .exception-btn:hover::before {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
     }
 
     .exception-btn:hover {
-        transform: scale(1.15) translateY(-2px);
+        transform: scale(1.1) translateY(-1px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .exception-btn:active {
         transform: scale(1.05) translateY(0);
+        transition: transform 0.1s ease;
     }
 
     .btn-outline-primary.exception-btn {
@@ -236,7 +239,7 @@
 
     .step-section:hover {
         box-shadow: var(--shadow-hover);
-        transform: translateY(-4px);
+        transform: translateY(-2px);
     }
 
     .step-header {
@@ -258,11 +261,12 @@
         margin-right: 16px;
         font-size: 1.25rem;
         box-shadow: 0 4px 12px rgba(155, 126, 222, 0.3);
-        transition: all 0.3s ease;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
     }
 
     .step-section:hover .step-number {
-        transform: rotate(360deg) scale(1.1);
+        transform: scale(1.1);
     }
 
     .step-header h5 {
