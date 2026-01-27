@@ -37,6 +37,7 @@ def create_excel_shift(year, month, shift_data, month_exceptions):
     holiday_fill = PatternFill(start_color='FFCCCC', end_color='FFCCCC', fill_type='solid')
     closed_day_fill = PatternFill(start_color='F0F0F0', end_color='F0F0F0', fill_type='solid')
     loc_name_fill = PatternFill(start_color='E8E8E8', end_color='E8E8E8', fill_type='solid')
+    empty_fill = PatternFill(start_color='E0E0E0', end_color='E0E0E0', fill_type='solid')
 
     saturday_font = Font(color='0000FF', bold=True)
     sunday_font = Font(color='FF0000', bold=True)
@@ -165,10 +166,15 @@ def create_excel_shift(year, month, shift_data, month_exceptions):
                         if assigned_ids:
                             names = [staff_dict.get(int(sid) if isinstance(sid, str) else sid, '?')
                                    for sid in assigned_ids if sid]
-                            cell.value = "\n".join(names) if names else "-"
-                            cell.font = Font(size=9, bold=True)
+                            if names:
+                                cell.value = "\n".join(names)
+                                cell.font = Font(size=9, bold=True)
+                            else:
+                                cell.value = "-"
+                                cell.fill = empty_fill
                         else:
                             cell.value = "-"
+                            cell.fill = empty_fill
 
             ws.row_dimensions[loc_row].height = 26
 

@@ -229,8 +229,11 @@ def create_pdf_shift(year, month, shift_data, month_exceptions):
                                    for sid in assigned_ids if sid]
                             cell_text = "/".join(names) if names else "-"
                             is_name = bool(names)
+                            if not names:
+                                bg = colors.HexColor('#e0e0e0')
                         else:
                             cell_text = "-"
+                            bg = colors.HexColor('#e0e0e0')
 
                     draw_cell(current_row, col, cell_text, bg_color=bg, bold=is_name)
                 else:
