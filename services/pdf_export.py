@@ -19,11 +19,19 @@ from .calendar_service import get_calendar_data
 def get_japanese_font():
     """日本語フォントを取得"""
     font_paths = [
+        # Linux (Docker/Cloud Run) - IPA fonts
+        '/usr/share/fonts/opentype/ipaexfont-gothic/ipaexg.ttf',
+        '/usr/share/fonts/truetype/ipaexfont-gothic/ipaexg.ttf',
+        '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf',
+        '/usr/share/fonts/truetype/fonts-japanese-gothic.ttf',
+        # Linux - Noto fonts
+        '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+        '/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc',
+        '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc',
+        # Windows fonts
         'C:/Windows/Fonts/msgothic.ttc',
         'C:/Windows/Fonts/meiryo.ttc',
         'C:/Windows/Fonts/YuGothM.ttc',
-        '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
-        '/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc',
     ]
     for font_path in font_paths:
         if os.path.exists(font_path):
@@ -53,6 +61,11 @@ def create_pdf_shift(year, month, shift_data, month_exceptions):
             pdfmetrics.registerFont(TTFont('JapaneseFont', font_path))
             font_name = 'JapaneseFont'
             bold_paths = [
+                # Linux (Docker/Cloud Run) - IPA fonts (use same as regular)
+                '/usr/share/fonts/opentype/ipaexfont-gothic/ipaexg.ttf',
+                '/usr/share/fonts/truetype/ipaexfont-gothic/ipaexg.ttf',
+                '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf',
+                # Windows fonts
                 'C:/Windows/Fonts/meiryob.ttc',
                 'C:/Windows/Fonts/YuGothB.ttc',
                 'C:/Windows/Fonts/msgothic.ttc',
