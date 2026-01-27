@@ -305,6 +305,74 @@
             border-color: transparent;
         }
 
+        .btn-outline-secondary {
+            border: 2px solid #C8CDD5;
+            color: var(--color-text-secondary);
+            background: transparent;
+        }
+
+        .btn-outline-secondary:hover {
+            background: linear-gradient(135deg, #E8EDF5, #D8DDE5);
+            color: var(--color-text-primary);
+            border-color: #C8CDD5;
+        }
+
+        .btn-outline-danger {
+            border: 2px solid #FFB3B3;
+            color: #FF8A80;
+            background: transparent;
+        }
+
+        .btn-outline-danger:hover {
+            background: linear-gradient(135deg, #FFB3B3, #FF8A80);
+            color: white;
+            border-color: transparent;
+        }
+
+        .btn-outline-warning {
+            border: 2px solid #FFD580;
+            color: #B8944D;
+            background: transparent;
+        }
+
+        .btn-outline-warning:hover {
+            background: linear-gradient(135deg, #FFE49F, #FFD580);
+            color: white;
+            border-color: transparent;
+        }
+
+        .btn-light {
+            background: white;
+            border: 2px solid #E8EDF5;
+            color: var(--color-text-primary);
+        }
+
+        .btn-light:hover {
+            background: linear-gradient(135deg, var(--color-lavender-light), var(--color-mint-light));
+            border-color: #9B7EDE;
+            color: var(--color-text-primary);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #E8EDF5, #D8DDE5);
+            color: var(--color-text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #D8DDE5, #C8CDD5);
+            color: var(--color-text-primary);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #FFE49F, #FFD580);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #FFD580, #FFC560);
+            color: white;
+        }
+
         .btn-lg {
             padding: 0.875rem 2rem;
             font-size: 1.125rem;
@@ -348,14 +416,62 @@
             border: 2px solid #E8EDF5;
             border-radius: var(--border-radius-sm);
             padding: 0.625rem 1rem;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: white;
+            font-weight: 400;
+            color: var(--color-text-primary);
+        }
+
+        .form-control:hover, .form-select:hover {
+            border-color: #C8C0E8;
+            background-color: var(--color-lavender-light);
         }
 
         .form-control:focus, .form-select:focus {
             border-color: #9B7EDE;
             box-shadow: 0 0 0 4px rgba(155, 126, 222, 0.1);
             outline: none;
+            background: white;
+        }
+
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%239B7EDE' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 14px;
+            padding-right: 2.5rem;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+        }
+
+        .form-select option {
+            padding: 10px;
+            background: white;
+            color: var(--color-text-primary);
+        }
+
+        /* Date/Month Inputs */
+        input[type="month"],
+        input[type="date"],
+        input[type="datetime-local"] {
+            cursor: pointer;
+        }
+
+        input[type="month"]::-webkit-calendar-picker-indicator,
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: opacity(0.6);
+            transition: all 0.3s ease;
+        }
+
+        input[type="month"]:hover::-webkit-calendar-picker-indicator,
+        input[type="date"]:hover::-webkit-calendar-picker-indicator,
+        input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
+            filter: opacity(1);
+            transform: scale(1.1);
         }
 
         .form-label {
