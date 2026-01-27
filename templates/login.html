@@ -51,51 +51,9 @@
             to { opacity: 1; }
         }
 
-        /* Floating Background Elements */
-        body::before,
-        body::after {
-            content: '';
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.3;
-            animation: float 20s infinite ease-in-out;
-        }
-
-        body::before {
-            width: 400px;
-            height: 400px;
-            background: var(--color-lavender);
-            top: -200px;
-            left: -200px;
-            animation-delay: 0s;
-        }
-
-        body::after {
-            width: 500px;
-            height: 500px;
-            background: var(--color-mint);
-            bottom: -250px;
-            right: -250px;
-            animation-delay: 10s;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translate(0, 0) scale(1);
-            }
-            33% {
-                transform: translate(50px, -50px) scale(1.1);
-            }
-            66% {
-                transform: translate(-50px, 50px) scale(0.9);
-            }
-        }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.6);
+            background: white;
             border-radius: var(--border-radius-lg);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             padding: 3rem;
@@ -103,18 +61,6 @@
             width: 100%;
             position: relative;
             z-index: 10;
-            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .login-header {
@@ -130,16 +76,6 @@
             background-clip: text;
             margin-bottom: 1rem;
             display: inline-block;
-            animation: iconBounce 2s infinite ease-in-out;
-        }
-
-        @keyframes iconBounce {
-            0%, 100% {
-                transform: translateY(0) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-10px) rotate(5deg);
-            }
         }
 
         .login-header h1 {
@@ -165,17 +101,12 @@
             font-size: 0.95rem;
         }
 
-        .input-group {
-            transition: all 0.3s ease;
-        }
-
         .input-group-text {
             background: linear-gradient(135deg, var(--color-lavender-light), var(--color-mint-light));
             border: 2px solid #E8EDF5;
             border-right: none;
             border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
             padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
         }
 
         .input-group-text i {
@@ -189,19 +120,17 @@
             border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
             padding: 0.75rem 1rem;
             font-size: 1rem;
-            transition: all 0.3s ease;
             background: white;
         }
 
         .form-control:focus {
             border-color: #9B7EDE;
-            box-shadow: 0 0 0 4px rgba(155, 126, 222, 0.1);
+            box-shadow: 0 0 0 3px rgba(155, 126, 222, 0.1);
             outline: none;
         }
 
         .input-group:focus-within .input-group-text {
             border-color: #9B7EDE;
-            background: linear-gradient(135deg, var(--color-lavender), rgba(184, 230, 213, 0.3));
         }
 
         .btn-login {
@@ -212,38 +141,17 @@
             font-size: 1.125rem;
             border-radius: var(--border-radius-sm);
             color: white;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             box-shadow: 0 4px 15px rgba(155, 126, 222, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-login::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn-login:hover::before {
-            width: 400px;
-            height: 400px;
         }
 
         .btn-login:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(155, 126, 222, 0.4);
+            box-shadow: 0 6px 20px rgba(155, 126, 222, 0.4);
             background: linear-gradient(135deg, #8B6ECE, #5FA1D4);
         }
 
         .btn-login:active {
-            transform: translateY(-1px);
+            opacity: 0.9;
         }
 
         .btn-login i {
@@ -256,19 +164,7 @@
             border: none;
             border-radius: var(--border-radius-md);
             padding: 1rem 1.25rem;
-            animation: slideDown 0.4s ease-out;
             margin-bottom: 1.5rem;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .alert-danger {
@@ -283,12 +179,8 @@
             vertical-align: middle;
         }
 
-        .btn-close {
-            transition: all 0.3s ease;
-        }
-
         .btn-close:hover {
-            transform: rotate(90deg) scale(1.1);
+            opacity: 0.7;
         }
 
         /* Responsive */

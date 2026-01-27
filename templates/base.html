@@ -44,33 +44,14 @@
             background-attachment: fixed;
             color: var(--color-text-primary);
             min-height: 100vh;
-            opacity: 0;
-            animation: fadeInBody 0.6s ease-out forwards;
-        }
-
-        @keyframes fadeInBody {
-            to { opacity: 1; }
         }
 
         /* Navbar */
         .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
+            background: white;
             border: none;
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
             padding: 1rem 0;
-            animation: slideDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
         }
 
         .navbar-brand {
@@ -83,11 +64,6 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-brand:hover {
-            transform: scale(1.05);
         }
 
         .navbar-brand i {
@@ -102,7 +78,6 @@
             color: var(--color-text-primary);
             border-radius: var(--border-radius-sm);
             font-weight: 500;
-            transition: all 0.3s ease;
             background: white;
         }
 
@@ -110,8 +85,6 @@
             background: linear-gradient(135deg, var(--color-lavender), var(--color-peach-light));
             border-color: var(--color-lavender);
             color: var(--color-text-primary);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-soft);
         }
 
         /* Navigation Tabs */
@@ -119,18 +92,6 @@
             border: none;
             gap: 0.5rem;
             padding: 0 0.5rem;
-            animation: fadeInUp 0.8s ease-out 0.2s both;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .nav-tabs .nav-link {
@@ -139,32 +100,13 @@
             padding: 0.875rem 1.75rem;
             border-radius: var(--border-radius-md);
             font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background 0.2s ease, color 0.2s ease;
             background: transparent;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-tabs .nav-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--color-lavender-light), var(--color-mint-light));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: -1;
-        }
-
-        .nav-tabs .nav-link:hover::before {
-            opacity: 1;
         }
 
         .nav-tabs .nav-link:hover {
             color: var(--color-text-primary);
-            transform: translateY(-2px);
+            background: linear-gradient(135deg, var(--color-lavender-light), var(--color-mint-light));
         }
 
         .nav-tabs .nav-link.active {
@@ -184,17 +126,12 @@
             border: none;
             border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-card);
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: fadeInUp 0.8s ease-out both;
+            background: white;
             overflow: hidden;
-            will-change: transform;
         }
 
         .card:hover {
             box-shadow: var(--shadow-hover);
-            transform: translateY(-2px);
         }
 
         .card-header {
@@ -223,35 +160,7 @@
             font-weight: 500;
             padding: 0.625rem 1.5rem;
             border: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            will-change: transform;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.5s ease, height 0.5s ease;
-            pointer-events: none;
-        }
-
-        .btn:hover::before {
-            width: 250px;
-            height: 250px;
-        }
-
-        .btn:active::before {
-            transition: none;
-            width: 0;
-            height: 0;
+            transition: all 0.2s ease;
         }
 
         .btn-primary {
@@ -425,40 +334,19 @@
             border: 2px solid #E8EDF5;
             border-radius: var(--border-radius-sm);
             padding: 0.625rem 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: white;
             font-weight: 400;
             color: var(--color-text-primary);
         }
 
-        .form-control:hover, .form-select:hover {
-            border-color: #C8C0E8;
-            background-color: var(--color-lavender-light);
-        }
-
         .form-control:focus, .form-select:focus {
             border-color: #9B7EDE;
-            box-shadow: 0 0 0 4px rgba(155, 126, 222, 0.1);
+            box-shadow: 0 0 0 3px rgba(155, 126, 222, 0.1);
             outline: none;
-            background: white;
         }
 
         .form-select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%239B7EDE' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 14px;
-            padding-right: 2.5rem;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
             cursor: pointer;
-        }
-
-        .form-select option {
-            padding: 10px;
-            background: white;
-            color: var(--color-text-primary);
         }
 
         /* Date/Month Inputs */
@@ -466,21 +354,6 @@
         input[type="date"],
         input[type="datetime-local"] {
             cursor: pointer;
-        }
-
-        input[type="month"]::-webkit-calendar-picker-indicator,
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-            filter: opacity(0.6);
-            transition: all 0.3s ease;
-        }
-
-        input[type="month"]:hover::-webkit-calendar-picker-indicator,
-        input[type="date"]:hover::-webkit-calendar-picker-indicator,
-        input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
-            filter: opacity(1);
-            transform: scale(1.1);
         }
 
         .form-label {
@@ -501,19 +374,6 @@
             border-radius: var(--border-radius-md);
             border: none;
             box-shadow: var(--shadow-hover);
-            backdrop-filter: blur(10px);
-            animation: slideInRight 0.4s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
         }
 
         .toast.bg-success {
@@ -522,11 +382,6 @@
 
         .toast.bg-danger {
             background: linear-gradient(135deg, #FFB3B3, #FF8A80) !important;
-        }
-
-        /* Container */
-        .container {
-            animation: fadeInUp 0.8s ease-out 0.1s both;
         }
 
         /* Smooth Scrolling */
@@ -555,22 +410,21 @@
             border: none;
             border-radius: var(--border-radius-lg);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(10px);
-            will-change: transform, opacity;
+            background: white;
         }
 
         .modal.show .modal-content {
-            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: modalFadeIn 0.2s ease-out;
         }
 
-        @keyframes modalSlideIn {
+        @keyframes modalFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-30px) scale(0.95);
+                transform: scale(0.98);
             }
             to {
                 opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: scale(1);
             }
         }
 
@@ -603,16 +457,11 @@
         }
 
         .modal-backdrop.show {
-            backdrop-filter: blur(4px);
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        .btn-close {
-            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.5);
         }
 
         .btn-close:hover {
-            transform: rotate(90deg) scale(1.1);
+            opacity: 0.7;
         }
 
         /* Form Check (Checkboxes & Radio) */
@@ -622,18 +471,11 @@
             border-radius: 6px;
             border: 2px solid #E8EDF5;
             cursor: pointer;
-            transition: all 0.2s ease;
-            will-change: transform, border-color;
         }
 
         .form-check-input:checked {
             background-color: #9B7EDE;
             border-color: #9B7EDE;
-        }
-
-        .form-check-input:hover {
-            border-color: #9B7EDE;
-            transform: scale(1.05);
         }
 
         .form-check-input:focus {
@@ -835,17 +677,11 @@
 
         ::-webkit-scrollbar-track {
             background: var(--color-soft-gray);
-            border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, var(--color-lavender), var(--color-mint));
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #8B6ECE, #A8D8C5);
+            background: var(--color-lavender);
+            border-radius: 5px;
         }
     </style>
     {% block extra_css %}{% endblock %}

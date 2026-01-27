@@ -21,7 +21,6 @@
         color: white;
         font-size: 0.95rem;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
     }
 
     .calendar-header-cell:nth-child(1) { background: linear-gradient(135deg, #9B7EDE, #B89EEE); }
@@ -39,14 +38,7 @@
         background: white;
         font-size: 0.8rem;
         border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    }
-
-    .calendar-cell:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        border-color: #E6E6FA;
     }
 
     .calendar-cell.empty {
@@ -100,12 +92,7 @@
         margin-bottom: 4px;
         border-radius: 8px;
         font-size: 0.75rem;
-        transition: all 0.3s ease;
         font-weight: 500;
-    }
-
-    .loc-status:hover {
-        transform: scale(1.02);
     }
 
     .loc-status.working {
@@ -145,41 +132,17 @@
         border-radius: 8px;
         border: 2px solid transparent;
         font-weight: 700;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: opacity 0.2s ease;
         cursor: pointer;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        position: relative;
-        overflow: hidden;
-        will-change: transform;
-    }
-
-    .exception-btn::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.5);
-        transform: translate(-50%, -50%);
-        transition: width 0.3s ease, height 0.3s ease;
-        pointer-events: none;
-    }
-
-    .exception-btn:hover::before {
-        width: 80px;
-        height: 80px;
     }
 
     .exception-btn:hover {
-        transform: scale(1.1) translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        opacity: 0.8;
     }
 
     .exception-btn:active {
-        transform: scale(1.05) translateY(0);
-        transition: transform 0.1s ease;
+        opacity: 0.6;
     }
 
     .btn-outline-primary.exception-btn {
@@ -224,22 +187,8 @@
         padding: 2rem;
         border: none;
         border-radius: var(--border-radius-lg);
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
+        background: white;
         box-shadow: var(--shadow-card);
-        transition: all 0.4s ease;
-        animation: fadeInUp 0.8s ease-out both;
-    }
-
-    .step-section:nth-child(1) { animation-delay: 0.1s; }
-    .step-section:nth-child(2) { animation-delay: 0.2s; }
-    .step-section:nth-child(3) { animation-delay: 0.3s; }
-    .step-section:nth-child(4) { animation-delay: 0.4s; }
-    .step-section:nth-child(5) { animation-delay: 0.5s; }
-
-    .step-section:hover {
-        box-shadow: var(--shadow-hover);
-        transform: translateY(-2px);
     }
 
     .step-header {
@@ -261,12 +210,6 @@
         margin-right: 16px;
         font-size: 1.25rem;
         box-shadow: 0 4px 12px rgba(155, 126, 222, 0.3);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        will-change: transform;
-    }
-
-    .step-section:hover .step-number {
-        transform: scale(1.1);
     }
 
     .step-header h5 {
@@ -305,55 +248,27 @@
     }
 
     .ng-table .form-check-input {
-        width: 22px;
-        height: 22px;
-        border-radius: 8px;
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
         border: 2px solid #E8EDF5;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: white;
-        position: relative;
-        appearance: none;
-        -webkit-appearance: none;
-    }
-
-    .ng-table .form-check-input::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0);
-        width: 12px;
-        height: 12px;
-        background: white;
-        border-radius: 3px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .ng-table .form-check-input:checked {
-        background: linear-gradient(135deg, #9B7EDE, #B89EEE);
+        background-color: #9B7EDE;
         border-color: #9B7EDE;
-        box-shadow: 0 2px 8px rgba(155, 126, 222, 0.3);
     }
 
-    .ng-table .form-check-input:checked::before {
-        transform: translate(-50%, -50%) scale(1);
-    }
-
-    .ng-table .form-check-input:hover {
+    .ng-table .form-check-input:focus {
         border-color: #9B7EDE;
-        transform: scale(1.15);
-        box-shadow: 0 2px 8px rgba(155, 126, 222, 0.2);
+        box-shadow: 0 0 0 3px rgba(155, 126, 222, 0.15);
+        outline: none;
     }
 
     .ng-table .form-check-input:disabled {
         opacity: 0.4;
         cursor: not-allowed;
-    }
-
-    .ng-table .form-check-input:disabled:hover {
-        transform: scale(1);
-        box-shadow: none;
     }
 
     /* Legend */
@@ -428,47 +343,21 @@
     /* Form Select in Calendar */
     .loc-status .form-select {
         font-size: 0.7rem;
-        padding: 4px 20px 4px 8px;
+        padding: 4px 8px;
         height: auto;
-        border-radius: 8px;
+        border-radius: 6px;
         border: 2px solid #E8EDF5;
         margin-top: 4px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         background: white;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B7EDE' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 6px center;
-        background-size: 10px;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
         cursor: pointer;
         font-weight: 500;
         color: var(--color-text-primary);
     }
 
-    .loc-status .form-select:hover {
-        border-color: #9B7EDE;
-        background-color: var(--color-lavender-light);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(155, 126, 222, 0.15);
-    }
-
     .loc-status .form-select:focus {
         border-color: #9B7EDE;
-        box-shadow: 0 0 0 4px rgba(155, 126, 222, 0.15);
+        box-shadow: 0 0 0 3px rgba(155, 126, 222, 0.15);
         outline: none;
-        background-color: white;
-    }
-
-    .loc-status .form-select option {
-        padding: 8px;
-        background: white;
-        color: var(--color-text-primary);
-    }
-
-    .loc-status .form-select option:hover {
-        background: var(--color-lavender-light);
     }
 
     /* Saved Shifts List */
