@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}スタッフ管理 - シフト表作成システム{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people"></i> スタッフ一覧</span>
+                <button class="btn btn-sm btn-light" onclick="showAddModal()">
+                    <i class="bi bi-plus-lg"></i> 新規追加
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="staffTable">
+                        <thead>
+                            <tr>
+                                <th>名前</th>
+                                <th>属性</th>
+                                <th>所属拠点</th>
+                                <th>月間最大出勤数</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card bg-light">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> 設定項目の説明
+            </div>
+            <div class="card-body">
+                <dl>
+                    <dt>属性</dt>
+                    <dd class="text-muted small">
+                        <strong>社員:</strong> フルタイム勤務のスタッフ<br>
+                        <strong>パート:</strong> パートタイム勤務のスタッフ。「パート優先枠」が有効な拠点で優先的に割り当てられます。
+                    </dd>
+
+                    <dt>月間最大出勤数</dt>
+                    <dd class="text-muted small">
+                        1ヶ月あたりの最大出勤日数です。「103万円の壁」対策などで、この日数を超えてシフトに割り当てられることはありません。
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="bi bi-bar-chart"></i> 属性別集計
+            </div>
+            <div class="card-body" id="summaryCard">
+                <!-- JSで動的に生成 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 追加/編集モーダル -->
+<div class="modal fade" id="staffModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">スタッフ追加</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="staffForm">
+                    <input type="hidden" id="editId">
+
+                    <div class="mb-3">
+                        <label for="staffName" class="form-label">名前 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="staffName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="staffType" class="form-label">属性</label>
+                        <select class="form-select" id="staffType">
+                            <option value="社員">社員</option>
+                            <option value="パート">パート</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="maxDays" class="form-label">月間最大出勤数</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="maxDays" min="1" max="31" value="31">
+                            <span class="input-group-text">日</span>
+                        </div>
+                        <div class="form-text">パートの場合、103万円の壁を考慮して設定してください。</div>
+                    </div>
+
+                    <div class="mb-3" id="assignedLocationsSection" style="display: none;">
+                        <label class="form-label">所属拠点（パートのみ）</label>
+                        <div id="assignedLocationsCheckboxes"></div>
+                        <div class="form-text">チェックした拠点のみシフトに入ります。未選択の場合は全拠点に入れます。</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" onclick="saveStaff()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 削除確認モーダル -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">削除確認</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="deleteName"></strong> を削除しますか？</p>
+                <p class="text-muted small">この操作は取り消せません。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">削除</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let staffList = [];
+    let locationsList = [];
+    let deleteTargetId = null;
+
+    const modal = new bootstrap.Modal(document.getElementById('staffModal'));
+    const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    // 初期表示
+    document.addEventListener('DOMContentLoaded', loadData);
+
+    async function loadData() {
+        try {
+            const [staffRes, locRes] = await Promise.all([
+                fetch('/api/staff'),
+                fetch('/api/locations')
+            ]);
+            staffList = await staffRes.json();
+            locationsList = await locRes.json();
+        } catch (error) {
+            console.error('データの取得に失敗:', error);
+            staffList = {{ staff | tojson }};
+            locationsList = {{ locations | tojson }};
+        }
+        renderTable();
+        renderSummary();
+        renderLocationCheckboxes();
+    }
+
+    function renderLocationCheckboxes() {
+        const container = document.getElementById('assignedLocationsCheckboxes');
+        let html = '';
+        locationsList.forEach(loc => {
+            html += `
+                <div class="form-check">
+                    <input class="form-check-input assigned-loc-check" type="checkbox" id="assignedLoc${loc.id}" value="${loc.id}">
+                    <label class="form-check-label" for="assignedLoc${loc.id}">${loc.name}</label>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function getLocationNames(locIds) {
+        if (!locIds || locIds.length === 0) return '-';
+        return locIds.map(id => {
+            const loc = locationsList.find(l => l.id === id);
+            return loc ? loc.name : '?';
+        }).join(', ');
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('staffBody');
+        let html = '';
+
+        staffList.forEach(staff => {
+            const typeClass = staff.type === '社員' ? 'bg-primary' : 'bg-success';
+            const assignedLocs = staff.type === 'パート' ? getLocationNames(staff.assigned_locations) : '-';
+
+            html += `
+                <tr>
+                    <td class="fw-bold">${staff.name}</td>
+                    <td><span class="badge ${typeClass}">${staff.type}</span></td>
+                    <td><small>${assignedLocs}</small></td>
+                    <td>${staff.max_days}日</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="showEditModal(${staff.id})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="showDeleteModal(${staff.id}, '${staff.name}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html || '<tr><td colspan="5" class="text-center text-muted">スタッフが登録されていません</td></tr>';
+    }
+
+    function renderSummary() {
+        const summaryCard = document.getElementById('summaryCard');
+
+        const employees = staffList.filter(s => s.type === '社員');
+        const partTimers = staffList.filter(s => s.type === 'パート');
+
+        summaryCard.innerHTML = `
+            <div class="d-flex justify-content-between mb-2">
+                <span><span class="badge bg-primary">社員</span></span>
+                <strong>${employees.length}名</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span><span class="badge bg-success">パート</span></span>
+                <strong>${partTimers.length}名</strong>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between">
+                <span>合計</span>
+                <strong>${staffList.length}名</strong>
+            </div>
+        `;
+    }
+
+    function toggleAssignedLocationsSection() {
+        const staffType = document.getElementById('staffType').value;
+        const section = document.getElementById('assignedLocationsSection');
+        section.style.display = staffType === 'パート' ? 'block' : 'none';
+    }
+
+    // 属性変更時に所属拠点セクションの表示/非表示を切り替え
+    document.getElementById('staffType').addEventListener('change', toggleAssignedLocationsSection);
+
+    function showAddModal() {
+        document.getElementById('modalTitle').textContent = 'スタッフ追加';
+        document.getElementById('editId').value = '';
+        document.getElementById('staffForm').reset();
+        document.getElementById('maxDays').value = 31;
+
+        // 所属拠点チェックボックスをリセット
+        document.querySelectorAll('.assigned-loc-check').forEach(cb => cb.checked = false);
+        toggleAssignedLocationsSection();
+
+        modal.show();
+    }
+
+    function showEditModal(id) {
+        const staff = staffList.find(s => s.id === id);
+        if (!staff) return;
+
+        document.getElementById('modalTitle').textContent = 'スタッフ編集';
+        document.getElementById('editId').value = staff.id;
+        document.getElementById('staffName').value = staff.name;
+        document.getElementById('staffType').value = staff.type;
+        document.getElementById('maxDays').value = staff.max_days;
+
+        // 所属拠点チェックボックスを設定
+        const assignedLocs = staff.assigned_locations || [];
+        document.querySelectorAll('.assigned-loc-check').forEach(cb => {
+            cb.checked = assignedLocs.includes(parseInt(cb.value));
+        });
+        toggleAssignedLocationsSection();
+
+        modal.show();
+    }
+
+    async function saveStaff() {
+        const editId = document.getElementById('editId').value;
+        const name = document.getElementById('staffName').value.trim();
+
+        if (!name) {
+            showToast('名前を入力してください', 'error');
+            return;
+        }
+
+        // 所属拠点を取得
+        const assignedLocations = [];
+        document.querySelectorAll('.assigned-loc-check:checked').forEach(cb => {
+            assignedLocations.push(parseInt(cb.value));
+        });
+
+        const data = {
+            name: name,
+            type: document.getElementById('staffType').value,
+            max_days: parseInt(document.getElementById('maxDays').value) || 31,
+            assigned_locations: assignedLocations
+        };
+
+        try {
+            let response;
+            if (editId) {
+                // 更新
+                response = await fetch(`/api/staff/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                // 新規追加
+                response = await fetch('/api/staff', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
+
+            if (response.ok) {
+                const result = await response.json();
+
+                if (editId) {
+                    const idx = staffList.findIndex(s => s.id === parseInt(editId));
+                    if (idx !== -1) staffList[idx] = result;
+                } else {
+                    staffList.push(result);
+                }
+
+                renderTable();
+                renderSummary();
+                modal.hide();
+                showToast(editId ? 'スタッフ情報を更新しました' : 'スタッフを追加しました');
+            } else {
+                showToast('保存に失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('保存に失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    function showDeleteModal(id, name) {
+        deleteTargetId = id;
+        document.getElementById('deleteName').textContent = name;
+        deleteModalEl.show();
+    }
+
+    async function confirmDelete() {
+        if (!deleteTargetId) return;
+
+        try {
+            const response = await fetch(`/api/staff/${deleteTargetId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                staffList = staffList.filter(s => s.id !== deleteTargetId);
+                renderTable();
+                renderSummary();
+                deleteModalEl.hide();
+                showToast('スタッフを削除しました');
+            } else {
+                showToast('削除に失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('削除に失敗しました', 'error');
+            console.error(error);
+        }
+
+        deleteTargetId = null;
+    }
+</script>
+{% endblock %}

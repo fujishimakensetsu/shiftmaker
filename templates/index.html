@@ -1,0 +1,958 @@
+{% extends "base.html" %}
+
+{% block title %}シフト作成 - シフト表作成システム{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        margin-bottom: 1rem;
+    }
+    .calendar-header-cell {
+        text-align: center;
+        font-weight: bold;
+        padding: 8px;
+        background-color: #4472C4;
+        color: white;
+    }
+    .calendar-header-cell.sunday { background-color: #dc3545; }
+    .calendar-header-cell.saturday { background-color: #0d6efd; }
+    .calendar-cell {
+        border: 1px solid #dee2e6;
+        padding: 5px;
+        min-height: 90px;
+        background: white;
+        font-size: 0.8rem;
+    }
+    .calendar-cell.empty { background-color: #f8f9fa; }
+    .calendar-cell.sunday { background-color: #fff5f5; }
+    .calendar-cell.saturday { background-color: #f0f7ff; }
+    .calendar-cell.holiday { background-color: #ffe6e6; }
+    .day-number {
+        font-weight: bold;
+        font-size: 1rem;
+        margin-bottom: 3px;
+    }
+    .day-number.sunday, .day-number.holiday { color: #dc3545; }
+    .day-number.saturday { color: #0d6efd; }
+    .holiday-name { font-size: 0.65rem; color: #dc3545; }
+    .loc-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 2px 4px;
+        margin-bottom: 2px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+    }
+    .loc-status.working { background-color: #d4edda; }
+    .loc-status.closed { background-color: #f8d7da; }
+    .loc-status.added { background-color: #cce5ff; border: 1px dashed #004085; }
+    .loc-status.removed { background-color: #fff3cd; border: 1px dashed #856404; }
+    .exception-btn {
+        padding: 0 4px;
+        font-size: 0.6rem;
+        line-height: 1.2;
+    }
+    .step-section {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background-color: #fff;
+    }
+    .step-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .step-number {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #4472C4;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    .ng-table { font-size: 0.85rem; }
+    .ng-table th, .ng-table td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 4px;
+    }
+    .legend-item {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 15px;
+        font-size: 0.8rem;
+    }
+    .legend-box {
+        width: 16px;
+        height: 16px;
+        margin-right: 5px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- 年月選択 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-calendar-plus"></i> シフト作成
+            </div>
+            <div class="card-body">
+                <div class="row align-items-end mb-3">
+                    <div class="col-md-3">
+                        <label for="yearMonth" class="form-label">対象年月</label>
+                        <input type="month" class="form-control" id="yearMonth">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary" onclick="loadCalendar()">
+                            <i class="bi bi-arrow-clockwise"></i> カレンダー更新
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP1: 例外日設定 -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h5 class="mb-0">営業日確認・例外設定</h5>
+            </div>
+            <p class="text-muted small">
+                拠点管理で設定した曜日に基づいて営業日が表示されます。<br>
+                年末年始・お盆などの変則日は、各日の「+」「-」ボタンで追加/除外できます。
+            </p>
+            <div class="mb-2">
+                <span class="legend-item"><span class="legend-box" style="background:#d4edda;"></span>通常営業</span>
+                <span class="legend-item"><span class="legend-box" style="background:#f8d7da;"></span>通常休業</span>
+                <span class="legend-item"><span class="legend-box" style="background:#cce5ff; border:1px dashed #004085;"></span>追加営業</span>
+                <span class="legend-item"><span class="legend-box" style="background:#fff3cd; border:1px dashed #856404;"></span>臨時休業</span>
+            </div>
+
+            <div class="calendar-grid" id="exceptionCalendar"></div>
+        </div>
+
+        <!-- STEP2: NG日登録 -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <h5 class="mb-0">NG日登録</h5>
+            </div>
+            <p class="text-muted small">各スタッフの出勤不可日にチェックを入れてください</p>
+
+            <div class="table-responsive">
+                <table class="table table-bordered ng-table" id="ngDaysTable">
+                    <thead id="ngDaysHead"></thead>
+                    <tbody id="ngDaysBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- STEP3: シフト生成 -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <h5 class="mb-0">シフト生成</h5>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-primary btn-lg" onclick="generateShift()">
+                    <i class="bi bi-gear"></i> シフト作成実行
+                </button>
+                <button class="btn btn-info btn-lg text-white" onclick="saveShift()" id="btnSave" disabled>
+                    <i class="bi bi-cloud-upload"></i> 保存
+                </button>
+                <button class="btn btn-success btn-lg" onclick="exportExcel()" id="btnExport" disabled>
+                    <i class="bi bi-file-earmark-excel"></i> Excel出力
+                </button>
+                <button class="btn btn-danger btn-lg" onclick="exportPdf()" id="btnExportPdf" disabled>
+                    <i class="bi bi-file-earmark-pdf"></i> PDF出力
+                </button>
+            </div>
+        </div>
+
+        <!-- 保存済みシフト一覧 -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number"><i class="bi bi-archive"></i></div>
+                <h5 class="mb-0">保存済みシフト</h5>
+            </div>
+            <p class="text-muted small">過去に保存したシフトを読み込んだり削除できます</p>
+
+            <div id="savedShiftsList">
+                <div class="text-muted">読み込み中...</div>
+            </div>
+        </div>
+
+        <!-- 結果表示 -->
+        <div class="card" id="resultCard" style="display: none;">
+            <div class="card-header">
+                <i class="bi bi-table"></i> 生成結果
+            </div>
+            <div class="card-body">
+                <h6>スタッフ別出勤日数</h6>
+                <div id="staffCounts" class="mb-4"></div>
+
+                <h6>シフト表プレビュー（日曜始まり）</h6>
+                <div class="calendar-grid" id="resultCalendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let calendarData = [];
+    let locations = [];
+    let staffList = [];
+    let ngDays = {};
+    let exceptions = {}; // { locId: { add: [], remove: [] } }
+    let generatedShift = null;
+
+    const WEEKDAY_NAMES_JP = ['日', '月', '火', '水', '木', '金', '土'];
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        // 最新のデータをAPIから取得
+        try {
+            const [locRes, staffRes] = await Promise.all([
+                fetch('/api/locations'),
+                fetch('/api/staff')
+            ]);
+            locations = await locRes.json();
+            staffList = await staffRes.json();
+        } catch (error) {
+            console.error('データ取得エラー:', error);
+            locations = {{ locations | tojson }};
+            staffList = {{ staff | tojson }};
+        }
+
+        const now = new Date();
+        const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+        document.getElementById('yearMonth').value = yearMonth;
+        loadCalendar();
+        loadSavedShiftsList();
+    });
+
+    async function loadCalendar() {
+        const yearMonth = document.getElementById('yearMonth').value;
+        if (!yearMonth) {
+            showToast('年月を選択してください', 'error');
+            return;
+        }
+
+        const [year, month] = yearMonth.split('-').map(Number);
+
+        try {
+            // 最新の拠点・スタッフデータを再取得
+            const [locRes, staffRes] = await Promise.all([
+                fetch('/api/locations'),
+                fetch('/api/staff')
+            ]);
+            locations = await locRes.json();
+            staffList = await staffRes.json();
+
+            // カレンダーデータ取得
+            const response = await fetch(`/api/calendar/${year}/${month}`);
+            calendarData = await response.json();
+
+            // 既存の例外日データを取得
+            const excResponse = await fetch(`/api/exceptions/${year}/${month}`);
+            const savedExceptions = await excResponse.json();
+
+            // 例外日を初期化
+            exceptions = {};
+            locations.forEach(loc => {
+                exceptions[loc.id] = savedExceptions[loc.id] || { add: [], remove: [] };
+            });
+
+            renderExceptionCalendar();
+            renderNgDaysTable();
+        } catch (error) {
+            showToast('カレンダーの読み込みに失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    function renderExceptionCalendar() {
+        const container = document.getElementById('exceptionCalendar');
+        let html = '';
+
+        // 曜日ヘッダー
+        WEEKDAY_NAMES_JP.forEach((name, idx) => {
+            let cls = 'calendar-header-cell';
+            if (idx === 0) cls += ' sunday';
+            if (idx === 6) cls += ' saturday';
+            html += `<div class="${cls}">${name}</div>`;
+        });
+
+        if (calendarData.length === 0) {
+            container.innerHTML = html;
+            return;
+        }
+
+        const firstWeekday = (calendarData[0].weekday + 1) % 7;
+
+        for (let i = 0; i < firstWeekday; i++) {
+            html += '<div class="calendar-cell empty"></div>';
+        }
+
+        calendarData.forEach(day => {
+            const weekdayJp = (day.weekday + 1) % 7;
+            let cellClass = 'calendar-cell';
+            let dayClass = 'day-number';
+
+            if (day.is_holiday) {
+                cellClass += ' holiday';
+                dayClass += ' holiday';
+            } else if (weekdayJp === 0) {
+                cellClass += ' sunday';
+                dayClass += ' sunday';
+            } else if (weekdayJp === 6) {
+                cellClass += ' saturday';
+                dayClass += ' saturday';
+            }
+
+            html += `<div class="${cellClass}">`;
+            html += `<div class="${dayClass}">${day.day}`;
+            if (day.holiday_name) {
+                html += ` <span class="holiday-name">${day.holiday_name}</span>`;
+            }
+            html += '</div>';
+
+            // 各拠点の状態
+            locations.forEach(loc => {
+                const locInfo = day.locations.find(l => l.id === loc.id);
+                const locExc = exceptions[loc.id] || { add: [], remove: [] };
+
+                const isAdded = locExc.add.includes(day.date);
+                const isRemoved = locExc.remove.includes(day.date);
+
+                // 最終的な営業状態
+                let baseWorking = locInfo ? locInfo.is_working : false;
+                let finalWorking = baseWorking;
+                if (isAdded) finalWorking = true;
+                if (isRemoved) finalWorking = false;
+
+                let statusClass = 'loc-status ';
+                if (isAdded) {
+                    statusClass += 'added';
+                } else if (isRemoved) {
+                    statusClass += 'removed';
+                } else if (finalWorking) {
+                    statusClass += 'working';
+                } else {
+                    statusClass += 'closed';
+                }
+
+                html += `<div class="${statusClass}">`;
+                html += `<span>${loc.name}</span>`;
+                html += `<span>`;
+
+                if (isAdded) {
+                    // 追加営業を解除
+                    html += `<button class="btn btn-outline-secondary exception-btn" onclick="removeException(${loc.id}, '${day.date}', 'add')" title="追加を解除">x</button>`;
+                } else if (isRemoved) {
+                    // 臨時休業を解除
+                    html += `<button class="btn btn-outline-secondary exception-btn" onclick="removeException(${loc.id}, '${day.date}', 'remove')" title="休業を解除">x</button>`;
+                } else if (baseWorking) {
+                    // 通常営業 → 臨時休業に
+                    html += `<button class="btn btn-outline-warning exception-btn" onclick="addException(${loc.id}, '${day.date}', 'remove')" title="臨時休業">-</button>`;
+                } else {
+                    // 通常休業 → 追加営業に
+                    html += `<button class="btn btn-outline-primary exception-btn" onclick="addException(${loc.id}, '${day.date}', 'add')" title="追加営業">+</button>`;
+                }
+
+                html += `</span></div>`;
+            });
+
+            html += '</div>';
+        });
+
+        const lastWeekday = (calendarData[calendarData.length - 1].weekday + 1) % 7;
+        for (let i = lastWeekday + 1; i < 7; i++) {
+            html += '<div class="calendar-cell empty"></div>';
+        }
+
+        container.innerHTML = html;
+    }
+
+    function addException(locId, dateStr, type) {
+        if (!exceptions[locId]) {
+            exceptions[locId] = { add: [], remove: [] };
+        }
+        if (!exceptions[locId][type].includes(dateStr)) {
+            exceptions[locId][type].push(dateStr);
+        }
+        // 反対の例外から削除
+        const opposite = type === 'add' ? 'remove' : 'add';
+        exceptions[locId][opposite] = exceptions[locId][opposite].filter(d => d !== dateStr);
+
+        renderExceptionCalendar();
+    }
+
+    function removeException(locId, dateStr, type) {
+        if (exceptions[locId] && exceptions[locId][type]) {
+            exceptions[locId][type] = exceptions[locId][type].filter(d => d !== dateStr);
+        }
+        renderExceptionCalendar();
+    }
+
+    function renderNgDaysTable() {
+        const thead = document.getElementById('ngDaysHead');
+        const tbody = document.getElementById('ngDaysBody');
+
+        let headerHtml = '<tr><th style="min-width: 100px;">スタッフ</th>';
+        calendarData.forEach(day => {
+            const weekdayJp = (day.weekday + 1) % 7;
+            // 全拠点が定休日かチェック
+            const allClosed = day.locations.every(loc => loc.is_closed_day);
+
+            let cls = '';
+            let style = '';
+            if (allClosed) {
+                cls = 'text-muted';
+                style = 'background-color: #e9ecef;';
+            } else if (day.is_holiday || weekdayJp === 0) {
+                cls = 'text-danger';
+            } else if (weekdayJp === 6) {
+                cls = 'text-primary';
+            }
+
+            headerHtml += `<th class="${cls}" style="min-width: 45px; ${style}">${day.day}<br><small>${WEEKDAY_NAMES_JP[weekdayJp]}${allClosed ? '<br>定休' : ''}</small></th>`;
+        });
+        headerHtml += '</tr>';
+        thead.innerHTML = headerHtml;
+
+        let bodyHtml = '';
+        staffList.forEach(staff => {
+            bodyHtml += `<tr><td class="fw-bold">${staff.name}<br><small class="text-muted">${staff.type}</small></td>`;
+
+            calendarData.forEach(day => {
+                // 全拠点が定休日かチェック
+                const allClosed = day.locations.every(loc => loc.is_closed_day);
+                const isNg = isNgDay(staff.id, day.date);
+                const checked = isNg ? 'checked' : '';
+
+                if (allClosed) {
+                    // 定休日はグレーアウトして選択不可
+                    bodyHtml += `
+                        <td style="background-color: #e9ecef;">
+                            <input class="form-check-input" type="checkbox" disabled
+                                style="opacity: 0.5;">
+                        </td>
+                    `;
+                } else {
+                    bodyHtml += `
+                        <td>
+                            <input class="form-check-input" type="checkbox" ${checked}
+                                onchange="toggleNgDay(${staff.id}, '${day.date}', this.checked)">
+                        </td>
+                    `;
+                }
+            });
+
+            bodyHtml += '</tr>';
+        });
+        tbody.innerHTML = bodyHtml;
+    }
+
+    function isNgDay(staffId, date) {
+        return (ngDays[staffId] || []).includes(date);
+    }
+
+    function toggleNgDay(staffId, date, isNg) {
+        if (!ngDays[staffId]) ngDays[staffId] = [];
+        if (isNg) {
+            if (!ngDays[staffId].includes(date)) ngDays[staffId].push(date);
+        } else {
+            ngDays[staffId] = ngDays[staffId].filter(d => d !== date);
+        }
+    }
+
+    async function generateShift() {
+        const yearMonth = document.getElementById('yearMonth').value;
+        if (!yearMonth) {
+            showToast('年月を選択してください', 'error');
+            return;
+        }
+
+        const [year, month] = yearMonth.split('-').map(Number);
+
+        try {
+            const response = await fetch('/api/generate_shift', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    year: year,
+                    month: month,
+                    ng_days: ngDays,
+                    exceptions: exceptions
+                })
+            });
+
+            generatedShift = await response.json();
+            renderResult();
+            document.getElementById('btnExport').disabled = false;
+            document.getElementById('btnExportPdf').disabled = false;
+            document.getElementById('btnSave').disabled = false;
+            showToast('シフトを生成しました');
+        } catch (error) {
+            showToast('シフト生成に失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    function renderResult() {
+        document.getElementById('resultCard').style.display = 'block';
+
+        // スタッフ別出勤日数
+        const countsDiv = document.getElementById('staffCounts');
+        let countsHtml = '<div class="row">';
+        staffList.forEach(staff => {
+            const count = generatedShift.staff_counts[staff.id] || 0;
+            const maxDays = staff.max_days;
+            const percentage = Math.round((count / maxDays) * 100);
+            const colorClass = percentage > 90 ? 'bg-danger' : percentage > 70 ? 'bg-warning' : 'bg-success';
+
+            countsHtml += `
+                <div class="col-md-3 mb-2">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <strong>${staff.name}</strong>
+                            <span class="badge ${colorClass} float-end">${count}/${maxDays}日</span>
+                            <div class="progress mt-1" style="height: 5px;">
+                                <div class="progress-bar ${colorClass}" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        countsHtml += '</div>';
+        countsDiv.innerHTML = countsHtml;
+
+        // 結果カレンダー
+        const container = document.getElementById('resultCalendar');
+        let html = '';
+
+        WEEKDAY_NAMES_JP.forEach((name, idx) => {
+            let cls = 'calendar-header-cell';
+            if (idx === 0) cls += ' sunday';
+            if (idx === 6) cls += ' saturday';
+            html += `<div class="${cls}">${name}</div>`;
+        });
+
+        const firstWeekday = (calendarData[0].weekday + 1) % 7;
+        for (let i = 0; i < firstWeekday; i++) {
+            html += '<div class="calendar-cell empty"></div>';
+        }
+
+        calendarData.forEach(day => {
+            const weekdayJp = (day.weekday + 1) % 7;
+            let cellClass = 'calendar-cell';
+            let dayClass = 'day-number';
+
+            if (day.is_holiday) {
+                cellClass += ' holiday';
+                dayClass += ' holiday';
+            } else if (weekdayJp === 0) {
+                cellClass += ' sunday';
+                dayClass += ' sunday';
+            } else if (weekdayJp === 6) {
+                cellClass += ' saturday';
+                dayClass += ' saturday';
+            }
+
+            html += `<div class="${cellClass}">`;
+            html += `<div class="${dayClass}">${day.day}</div>`;
+
+            locations.forEach(loc => {
+                const locExc = exceptions[loc.id] || { add: [], remove: [] };
+                const locInfo = day.locations.find(l => l.id === loc.id);
+
+                let baseWorking = locInfo ? locInfo.is_working : false;
+                let finalWorking = baseWorking;
+                if (locExc.add.includes(day.date)) finalWorking = true;
+                if (locExc.remove.includes(day.date)) finalWorking = false;
+
+                if (!finalWorking) {
+                    html += `<div class="loc-status closed"><small>${loc.name}: 休</small></div>`;
+                } else {
+                    const assigned = generatedShift.shift[day.date]?.[loc.id] || [];
+                    const maxStaff = locInfo ? locInfo.max_staff : 2;
+
+                    html += `<div class="loc-status working">`;
+                    html += `<small><strong>${loc.name}:</strong></small>`;
+
+                    // 担当者選択プルダウン（最大人数分）
+                    for (let i = 0; i < maxStaff; i++) {
+                        const currentStaffId = assigned[i] || '';
+                        html += `<select class="form-select form-select-sm mt-1" style="font-size:0.65rem; padding:1px 2px; height:auto;"
+                            onchange="updateAssignment('${day.date}', ${loc.id}, ${i}, this.value)">`;
+                        html += `<option value="">--</option>`;
+                        staffList.forEach(s => {
+                            const selected = (s.id === currentStaffId) ? 'selected' : '';
+                            html += `<option value="${s.id}" ${selected}>${s.name}</option>`;
+                        });
+                        html += `</select>`;
+                    }
+
+                    html += `</div>`;
+                }
+            });
+
+            html += '</div>';
+        });
+
+        const lastWeekday = (calendarData[calendarData.length - 1].weekday + 1) % 7;
+        for (let i = lastWeekday + 1; i < 7; i++) {
+            html += '<div class="calendar-cell empty"></div>';
+        }
+
+        container.innerHTML = html;
+    }
+
+    // 担当者変更時の処理
+    function updateAssignment(dateStr, locId, slotIndex, staffIdStr) {
+        const staffId = staffIdStr ? parseInt(staffIdStr) : null;
+
+        if (!generatedShift.shift[dateStr]) {
+            generatedShift.shift[dateStr] = {};
+        }
+        if (!generatedShift.shift[dateStr][locId]) {
+            generatedShift.shift[dateStr][locId] = [];
+        }
+
+        const assigned = generatedShift.shift[dateStr][locId];
+
+        // 配列を必要に応じて拡張
+        while (assigned.length <= slotIndex) {
+            assigned.push(null);
+        }
+
+        // 古い担当者のカウントを減らす
+        const oldStaffId = assigned[slotIndex];
+        if (oldStaffId && generatedShift.staff_counts[oldStaffId] !== undefined) {
+            generatedShift.staff_counts[oldStaffId]--;
+        }
+
+        // 新しい担当者を設定
+        assigned[slotIndex] = staffId;
+
+        // 新しい担当者のカウントを増やす
+        if (staffId && generatedShift.staff_counts[staffId] !== undefined) {
+            generatedShift.staff_counts[staffId]++;
+        }
+
+        // nullを除去して詰める
+        generatedShift.shift[dateStr][locId] = assigned.filter(id => id !== null);
+
+        // スタッフカウント表示を更新
+        updateStaffCountsDisplay();
+    }
+
+    // スタッフカウント表示の更新
+    function updateStaffCountsDisplay() {
+        const countsDiv = document.getElementById('staffCounts');
+        let countsHtml = '<div class="row">';
+        staffList.forEach(staff => {
+            const count = generatedShift.staff_counts[staff.id] || 0;
+            const maxDays = staff.max_days;
+            const percentage = Math.round((count / maxDays) * 100);
+            const colorClass = percentage > 90 ? 'bg-danger' : percentage > 70 ? 'bg-warning' : 'bg-success';
+
+            countsHtml += `
+                <div class="col-md-3 mb-2">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <strong>${staff.name}</strong>
+                            <span class="badge ${colorClass} float-end">${count}/${maxDays}日</span>
+                            <div class="progress mt-1" style="height: 5px;">
+                                <div class="progress-bar ${colorClass}" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        countsHtml += '</div>';
+        countsDiv.innerHTML = countsHtml;
+    }
+
+    async function exportExcel() {
+        const yearMonth = document.getElementById('yearMonth').value;
+        if (!yearMonth) {
+            showToast('年月を選択してください', 'error');
+            return;
+        }
+
+        if (!generatedShift) {
+            showToast('先にシフトを生成してください', 'error');
+            return;
+        }
+
+        const [year, month] = yearMonth.split('-').map(Number);
+
+        try {
+            // 編集済みのシフトデータを送信
+            const response = await fetch('/api/export_excel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    year: year,
+                    month: month,
+                    exceptions: exceptions,
+                    shift_data: generatedShift.shift  // 編集済みデータを送信
+                })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `shift_${year}_${String(month).padStart(2, '0')}.xlsx`;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+                showToast('Excelファイルをダウンロードしました');
+            } else {
+                showToast('Excel出力に失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('Excel出力に失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    async function exportPdf() {
+        const yearMonth = document.getElementById('yearMonth').value;
+        if (!yearMonth) {
+            showToast('年月を選択してください', 'error');
+            return;
+        }
+
+        if (!generatedShift) {
+            showToast('先にシフトを生成してください', 'error');
+            return;
+        }
+
+        const [year, month] = yearMonth.split('-').map(Number);
+
+        try {
+            // 編集済みのシフトデータを送信
+            const response = await fetch('/api/export_pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    year: year,
+                    month: month,
+                    exceptions: exceptions,
+                    shift_data: generatedShift.shift
+                })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `shift_${year}_${String(month).padStart(2, '0')}.pdf`;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+                showToast('PDFファイルをダウンロードしました');
+            } else {
+                showToast('PDF出力に失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('PDF出力に失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    // シフト保存
+    async function saveShift() {
+        const yearMonth = document.getElementById('yearMonth').value;
+        if (!yearMonth) {
+            showToast('年月を選択してください', 'error');
+            return;
+        }
+
+        if (!generatedShift) {
+            showToast('先にシフトを生成してください', 'error');
+            return;
+        }
+
+        const [year, month] = yearMonth.split('-').map(Number);
+
+        try {
+            const response = await fetch(`/api/shifts/${year}/${month}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    shift_data: generatedShift.shift,
+                    staff_counts: generatedShift.staff_counts,
+                    ng_days: ngDays,
+                    exceptions: exceptions
+                })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                showToast(result.message || 'シフトを保存しました');
+                loadSavedShiftsList();
+            } else {
+                showToast(result.error || '保存に失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('シフト保存に失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    // 保存済みシフト一覧を読み込み
+    async function loadSavedShiftsList() {
+        const container = document.getElementById('savedShiftsList');
+
+        try {
+            const response = await fetch('/api/shifts');
+            const shifts = await response.json();
+
+            if (shifts.length === 0) {
+                container.innerHTML = '<div class="text-muted">保存済みのシフトはありません</div>';
+                return;
+            }
+
+            let html = '<div class="table-responsive"><table class="table table-sm table-hover">';
+            html += '<thead><tr><th>年月</th><th>更新日時</th><th>操作</th></tr></thead><tbody>';
+
+            shifts.forEach(shift => {
+                const updatedAt = shift.updated_at ? new Date(shift.updated_at).toLocaleString('ja-JP') : '-';
+                html += `
+                    <tr>
+                        <td><strong>${shift.year}年${shift.month}月</strong></td>
+                        <td><small class="text-muted">${updatedAt}</small></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="loadSavedShift(${shift.year}, ${shift.month})">
+                                <i class="bi bi-download"></i> 読込
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSavedShift(${shift.year}, ${shift.month})">
+                                <i class="bi bi-trash"></i> 削除
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        } catch (error) {
+            container.innerHTML = '<div class="text-danger">一覧の読み込みに失敗しました</div>';
+            console.error(error);
+        }
+    }
+
+    // 保存済みシフトを読み込み
+    async function loadSavedShift(year, month) {
+        try {
+            const response = await fetch(`/api/shifts/${year}/${month}`);
+            if (!response.ok) {
+                showToast('シフトが見つかりません', 'error');
+                return;
+            }
+
+            const savedShift = await response.json();
+
+            // 年月を設定
+            const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
+            document.getElementById('yearMonth').value = yearMonth;
+
+            // NG日を復元
+            ngDays = savedShift.ng_days || {};
+
+            // 例外日を復元
+            exceptions = savedShift.exceptions || {};
+
+            // カレンダーを読み込み
+            const calResponse = await fetch(`/api/calendar/${year}/${month}`);
+            calendarData = await calResponse.json();
+
+            // 拠点データを更新
+            const [locRes, staffRes] = await Promise.all([
+                fetch('/api/locations'),
+                fetch('/api/staff')
+            ]);
+            locations = await locRes.json();
+            staffList = await staffRes.json();
+
+            // 表示を更新
+            renderExceptionCalendar();
+            renderNgDaysTable();
+
+            // シフトデータを復元
+            generatedShift = {
+                year: savedShift.year,
+                month: savedShift.month,
+                shift: savedShift.shift_data,
+                staff_counts: savedShift.staff_counts
+            };
+
+            renderResult();
+            document.getElementById('btnExport').disabled = false;
+            document.getElementById('btnExportPdf').disabled = false;
+            document.getElementById('btnSave').disabled = false;
+
+            showToast(`${year}年${month}月のシフトを読み込みました`);
+        } catch (error) {
+            showToast('シフトの読み込みに失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    // 保存済みシフトを削除
+    async function deleteSavedShift(year, month) {
+        if (!confirm(`${year}年${month}月のシフトを削除しますか？`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/shifts/${year}/${month}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                showToast(result.message || 'シフトを削除しました');
+                loadSavedShiftsList();
+            } else {
+                showToast(result.error || '削除に失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('シフト削除に失敗しました', 'error');
+            console.error(error);
+        }
+    }
+</script>
+{% endblock %}

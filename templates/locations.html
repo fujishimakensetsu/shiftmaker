@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}拠点管理 - シフト表作成システム{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-building"></i> 拠点一覧</span>
+                <button class="btn btn-sm btn-light" onclick="showAddModal()">
+                    <i class="bi bi-plus-lg"></i> 新規追加
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="locationTable">
+                        <thead>
+                            <tr>
+                                <th>拠点名</th>
+                                <th>稼働曜日</th>
+                                <th>定休日</th>
+                                <th>祝日</th>
+                                <th>人数</th>
+                                <th>パート優先</th>
+                                <th>人数変動</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="locationBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card bg-light">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> 設定項目の説明
+            </div>
+            <div class="card-body">
+                <dl>
+                    <dt>稼働曜日</dt>
+                    <dd class="text-muted small">基本的に営業する曜日を選択します。</dd>
+
+                    <dt>祝日稼働</dt>
+                    <dd class="text-muted small">祝日に営業するかどうか。</dd>
+
+                    <dt>最小/最大人数</dt>
+                    <dd class="text-muted small">営業日に必要なスタッフの最小〜最大人数です。</dd>
+
+                    <dt>パート優先枠</dt>
+                    <dd class="text-muted small">ONにすると、パートタイマーを優先的に割り当てます。</dd>
+
+                    <dt>人数変動ルール</dt>
+                    <dd class="text-muted small">パートが確保できない場合、必要人数を減らします。</dd>
+                </dl>
+                <hr>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-lightbulb"></i> 年末年始・お盆などの例外日は「シフト作成」画面で設定できます。
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 追加/編集モーダル -->
+<div class="modal fade" id="locationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">拠点追加</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="locationForm">
+                    <input type="hidden" id="editId">
+
+                    <div class="mb-3">
+                        <label for="locName" class="form-label">拠点名 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="locName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">稼働曜日</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="day0" value="0">
+                                <label class="form-check-label" for="day0">月</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="day1" value="1">
+                                <label class="form-check-label" for="day1">火</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="day2" value="2">
+                                <label class="form-check-label" for="day2">水</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="day3" value="3">
+                                <label class="form-check-label" for="day3">木</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="day4" value="4">
+                                <label class="form-check-label" for="day4">金</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="day5" value="5">
+                                <label class="form-check-label" for="day5">土</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="day6" value="6">
+                                <label class="form-check-label" for="day6">日</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">定休日</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="closed0" value="0">
+                                <label class="form-check-label" for="closed0">月</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="closed1" value="1">
+                                <label class="form-check-label" for="closed1">火</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="closed2" value="2">
+                                <label class="form-check-label" for="closed2">水</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="closed3" value="3">
+                                <label class="form-check-label" for="closed3">木</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="closed4" value="4">
+                                <label class="form-check-label" for="closed4">金</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="closed5" value="5">
+                                <label class="form-check-label" for="closed5">土</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="closed6" value="6">
+                                <label class="form-check-label" for="closed6">日</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="workOnHolidays" checked>
+                            <label class="form-check-label" for="workOnHolidays">祝日稼働</label>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="minStaff" class="form-label">最小人数</label>
+                            <input type="number" class="form-control" id="minStaff" min="1" max="10" value="1">
+                        </div>
+                        <div class="col-6">
+                            <label for="maxStaff" class="form-label">最大人数</label>
+                            <input type="number" class="form-control" id="maxStaff" min="1" max="10" value="2">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="partTimePriority">
+                            <label class="form-check-label" for="partTimePriority">パート優先枠</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexibleStaffing">
+                            <label class="form-check-label" for="flexibleStaffing">人数変動ルール（パート不足時に人数削減）</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" onclick="saveLocation()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 削除確認モーダル -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">削除確認</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="deleteName"></strong> を削除しますか？</p>
+                <p class="text-muted small">この操作は取り消せません。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">削除</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // WEEKDAY_NAMES は base.html で定義済み
+    let locations = [];
+    let deleteTargetId = null;
+
+    const modal = new bootstrap.Modal(document.getElementById('locationModal'));
+    const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    document.addEventListener('DOMContentLoaded', loadLocations);
+
+    async function loadLocations() {
+        try {
+            const response = await fetch('/api/locations');
+            locations = await response.json();
+            renderTable();
+        } catch (error) {
+            console.error('拠点データの取得に失敗:', error);
+            locations = {{ locations | tojson }};
+            renderTable();
+        }
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('locationBody');
+        let html = '';
+
+        locations.forEach(loc => {
+            const workingDays = (loc.working_days || []).map(d => WEEKDAY_NAMES[d]).join(', ');
+            const closedDays = (loc.closed_days || []).map(d => WEEKDAY_NAMES[d]).join(', ');
+
+            html += `
+                <tr>
+                    <td class="fw-bold">${loc.name}</td>
+                    <td><small>${workingDays || '-'}</small></td>
+                    <td><small class="text-danger">${closedDays || '-'}</small></td>
+                    <td>${loc.work_on_holidays ? '<span class="badge bg-success">ON</span>' : '<span class="badge bg-secondary">OFF</span>'}</td>
+                    <td>${loc.min_staff || 1}〜${loc.max_staff || 2}名</td>
+                    <td>${loc.part_time_priority ? '<span class="badge bg-info">ON</span>' : '<span class="badge bg-secondary">OFF</span>'}</td>
+                    <td>${loc.flexible_staffing ? '<span class="badge bg-warning text-dark">ON</span>' : '<span class="badge bg-secondary">OFF</span>'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="showEditModal(${loc.id})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="showDeleteModal(${loc.id}, '${loc.name}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html || '<tr><td colspan="8" class="text-center text-muted">拠点が登録されていません</td></tr>';
+    }
+
+    function showAddModal() {
+        document.getElementById('modalTitle').textContent = '拠点追加';
+        document.getElementById('editId').value = '';
+        document.getElementById('locationForm').reset();
+
+        // 土日をデフォルトでチェック
+        for (let i = 0; i < 7; i++) {
+            document.getElementById('day' + i).checked = (i === 5 || i === 6);
+            document.getElementById('closed' + i).checked = false;
+        }
+        document.getElementById('workOnHolidays').checked = true;
+        document.getElementById('minStaff').value = 1;
+        document.getElementById('maxStaff').value = 2;
+
+        modal.show();
+    }
+
+    function showEditModal(id) {
+        const loc = locations.find(l => l.id === id);
+        if (!loc) return;
+
+        document.getElementById('modalTitle').textContent = '拠点編集';
+        document.getElementById('editId').value = loc.id;
+        document.getElementById('locName').value = loc.name;
+
+        // 曜日チェックボックス
+        for (let i = 0; i < 7; i++) {
+            document.getElementById('day' + i).checked = (loc.working_days || []).includes(i);
+            document.getElementById('closed' + i).checked = (loc.closed_days || []).includes(i);
+        }
+
+        document.getElementById('workOnHolidays').checked = loc.work_on_holidays !== false;
+        document.getElementById('minStaff').value = loc.min_staff || 1;
+        document.getElementById('maxStaff').value = loc.max_staff || 2;
+        document.getElementById('partTimePriority').checked = loc.part_time_priority;
+        document.getElementById('flexibleStaffing').checked = loc.flexible_staffing;
+
+        modal.show();
+    }
+
+    async function saveLocation() {
+        const editId = document.getElementById('editId').value;
+        const name = document.getElementById('locName').value.trim();
+
+        if (!name) {
+            showToast('拠点名を入力してください', 'error');
+            return;
+        }
+
+        // 稼働曜日を取得
+        const workingDays = [];
+        const closedDays = [];
+        for (let i = 0; i < 7; i++) {
+            if (document.getElementById('day' + i).checked) {
+                workingDays.push(i);
+            }
+            if (document.getElementById('closed' + i).checked) {
+                closedDays.push(i);
+            }
+        }
+
+        const minStaff = parseInt(document.getElementById('minStaff').value) || 1;
+        const maxStaff = parseInt(document.getElementById('maxStaff').value) || 2;
+
+        if (minStaff > maxStaff) {
+            showToast('最小人数は最大人数以下にしてください', 'error');
+            return;
+        }
+
+        const data = {
+            name: name,
+            working_days: workingDays,
+            closed_days: closedDays,
+            work_on_holidays: document.getElementById('workOnHolidays').checked,
+            min_staff: minStaff,
+            max_staff: maxStaff,
+            part_time_priority: document.getElementById('partTimePriority').checked,
+            flexible_staffing: document.getElementById('flexibleStaffing').checked
+        };
+
+        try {
+            let response;
+            if (editId) {
+                response = await fetch(`/api/locations/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                response = await fetch('/api/locations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
+
+            if (response.ok) {
+                const result = await response.json();
+
+                if (editId) {
+                    const idx = locations.findIndex(l => l.id === parseInt(editId));
+                    if (idx !== -1) locations[idx] = result;
+                } else {
+                    locations.push(result);
+                }
+
+                renderTable();
+                modal.hide();
+                showToast(editId ? '拠点を更新しました' : '拠点を追加しました');
+            } else {
+                showToast('保存に失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('保存に失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    function showDeleteModal(id, name) {
+        deleteTargetId = id;
+        document.getElementById('deleteName').textContent = name;
+        deleteModalEl.show();
+    }
+
+    async function confirmDelete() {
+        if (!deleteTargetId) return;
+
+        try {
+            const response = await fetch(`/api/locations/${deleteTargetId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                locations = locations.filter(l => l.id !== deleteTargetId);
+                renderTable();
+                deleteModalEl.hide();
+                showToast('拠点を削除しました');
+            } else {
+                showToast('削除に失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('削除に失敗しました', 'error');
+            console.error(error);
+        }
+
+        deleteTargetId = null;
+    }
+</script>
+{% endblock %}

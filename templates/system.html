@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}データ管理 - シフト表作成システム{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-download"></i> 設定エクスポート（保存）
+            </div>
+            <div class="card-body">
+                <p>現在の拠点・スタッフ・NG日設定をJSONファイルとしてダウンロードします。</p>
+                <p class="text-muted small">バックアップや他の環境への移行に使用できます。</p>
+                <button class="btn btn-primary" onclick="exportSettings()">
+                    <i class="bi bi-download"></i> 設定をダウンロード
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-upload"></i> 設定インポート（復元）
+            </div>
+            <div class="card-body">
+                <p>以前エクスポートしたJSONファイルから設定を復元します。</p>
+                <p class="text-danger small"><i class="bi bi-exclamation-triangle"></i> 現在の設定は上書きされます。</p>
+
+                <div class="mb-3">
+                    <input type="file" class="form-control" id="importFile" accept=".json">
+                </div>
+                <button class="btn btn-warning" onclick="importSettings()">
+                    <i class="bi bi-upload"></i> 設定をインポート
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card bg-light">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> データ管理について
+            </div>
+            <div class="card-body">
+                <h6>JSON設定ファイルの内容</h6>
+                <ul class="text-muted small">
+                    <li><strong>拠点情報:</strong> 拠点名、稼働曜日、祝日設定、最小/最大人数、各種フラグ</li>
+                    <li><strong>スタッフ情報:</strong> 名前、属性（社員/パート）、月間最大出勤数</li>
+                    <li><strong>NG日情報:</strong> スタッフごとの出勤不可日リスト</li>
+                    <li><strong>例外日情報:</strong> 月ごとの追加営業日・臨時休業日リスト</li>
+                </ul>
+
+                <h6 class="mt-4">注意事項</h6>
+                <ul class="text-muted small">
+                    <li>このアプリはデータベースを使用しません</li>
+                    <li>ブラウザを閉じるとセッション内のデータは失われます</li>
+                    <li>定期的にエクスポートしてバックアップを取ってください</li>
+                    <li>Cloud Run環境ではサーバー再起動でデータがリセットされます</li>
+                </ul>
+
+                <h6 class="mt-4">運用フロー（推奨）</h6>
+                <ol class="text-muted small">
+                    <li>初回: 拠点・スタッフを登録</li>
+                    <li>設定をエクスポートして保存</li>
+                    <li>次回以降: 保存したJSONをインポートして復元</li>
+                    <li>シフト作成を実施</li>
+                    <li>変更があれば再度エクスポート</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-exclamation-triangle"></i> データリセット
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">全ての設定をデフォルト状態に戻します。</p>
+                <button class="btn btn-outline-danger" onclick="confirmReset()">
+                    <i class="bi bi-arrow-counterclockwise"></i> デフォルトに戻す
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- リセット確認モーダル -->
+<div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">リセット確認</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>全ての設定をデフォルトに戻しますか？</p>
+                <p class="text-muted small">この操作は取り消せません。事前にエクスポートすることをお勧めします。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-danger" onclick="doReset()">リセット</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const resetModal = new bootstrap.Modal(document.getElementById('resetModal'));
+
+    function exportSettings() {
+        window.location.href = '/api/export_settings';
+        showToast('設定ファイルをダウンロードしています...');
+    }
+
+    async function importSettings() {
+        const fileInput = document.getElementById('importFile');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            showToast('ファイルを選択してください', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/api/import_settings', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showToast('設定をインポートしました。ページを再読み込みします...');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast(result.error || 'インポートに失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('インポートに失敗しました', 'error');
+            console.error(error);
+        }
+    }
+
+    function confirmReset() {
+        resetModal.show();
+    }
+
+    async function doReset() {
+        try {
+            const response = await fetch('/api/reset', {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                resetModal.hide();
+                showToast('設定をリセットしました。ページを再読み込みします...');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast('リセットに失敗しました', 'error');
+            }
+        } catch (error) {
+            showToast('リセットに失敗しました', 'error');
+            console.error(error);
+        }
+    }
+</script>
+{% endblock %}
