@@ -201,7 +201,7 @@ def create_pdf_shift(year, month, shift_data, month_exceptions):
             col = col_idx + 1
             if day_info and all_closed_days[col_idx]:
                 draw_cell(first_loc_row, col, "定休日",
-                         bg_color=colors.HexColor('#f0f0f0'),
+                         bg_color=colors.HexColor('#d3d3d3'),
                          row_span=num_locations)
 
         for loc_idx, loc in enumerate(locations):
