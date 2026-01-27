@@ -106,7 +106,7 @@
                 <i class="bi bi-calendar-check"></i> シフト表作成システム
             </a>
             <div class="ms-auto">
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-box-arrow-right"></i> ログアウト
                 </a>
             </div>
@@ -116,22 +116,22 @@
     <div class="container">
         <ul class="nav nav-tabs mb-4">
             <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="/">
+                <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="/">
                     <i class="bi bi-calendar3"></i> シフト作成
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'locations_page' %}active{% endif %}" href="/locations">
+                <a class="nav-link {% if request.endpoint == 'main.locations_page' %}active{% endif %}" href="/locations">
                     <i class="bi bi-building"></i> 拠点管理
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'staff_page' %}active{% endif %}" href="/staff">
+                <a class="nav-link {% if request.endpoint == 'main.staff_page' %}active{% endif %}" href="/staff">
                     <i class="bi bi-people"></i> スタッフ管理
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'system_page' %}active{% endif %}" href="/system">
+                <a class="nav-link {% if request.endpoint == 'main.system_page' %}active{% endif %}" href="/system">
                     <i class="bi bi-gear"></i> データ管理
                 </a>
             </li>

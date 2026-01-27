@@ -86,7 +86,7 @@
         </div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+        <form method="POST" action="{{ url_for('auth.login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
             <div class="mb-4">
                 <label for="password" class="form-label">パスワード</label>
                 <div class="input-group">
