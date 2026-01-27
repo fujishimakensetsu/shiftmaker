@@ -218,10 +218,11 @@ def create_pdf_shift(year, month, shift_data, month_exceptions):
                     is_name = False
 
                     if loc_info and loc_info.get('is_closed_day', False):
-                        cell_text = "休"
-                        bg = colors.HexColor('#f0f0f0')
+                        cell_text = ""
+                        bg = colors.HexColor('#d3d3d3')
                     elif loc_info and not loc_info['is_working']:
-                        cell_text = "休"
+                        cell_text = ""
+                        bg = colors.HexColor('#d3d3d3')
                     else:
                         assigned_ids = shift_data.get(day_info['date'], {}).get(str(loc['id']), [])
                         if assigned_ids:
