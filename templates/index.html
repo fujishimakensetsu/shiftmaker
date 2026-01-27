@@ -4,99 +4,388 @@
 
 {% block extra_css %}
 <style>
+    /* Calendar Grid */
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 2px;
-        margin-bottom: 1rem;
+        gap: 8px;
+        margin-bottom: 1.5rem;
+        padding: 4px;
     }
+
     .calendar-header-cell {
         text-align: center;
-        font-weight: bold;
-        padding: 8px;
-        background-color: #4472C4;
+        font-weight: 600;
+        padding: 12px 8px;
+        border-radius: 12px;
         color: white;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
     }
-    .calendar-header-cell.sunday { background-color: #dc3545; }
-    .calendar-header-cell.saturday { background-color: #0d6efd; }
+
+    .calendar-header-cell:nth-child(1) { background: linear-gradient(135deg, #9B7EDE, #B89EEE); }
+    .calendar-header-cell:nth-child(2) { background: linear-gradient(135deg, #FFB3B3, #FFCACA); }
+    .calendar-header-cell:nth-child(3) { background: linear-gradient(135deg, #B8E6D5, #C8F0E5); }
+    .calendar-header-cell:nth-child(4) { background: linear-gradient(135deg, #FFD5C2, #FFE5D2); }
+    .calendar-header-cell:nth-child(5) { background: linear-gradient(135deg, #C2E0FF, #D2EDFF); }
+    .calendar-header-cell:nth-child(6) { background: linear-gradient(135deg, #E6E6FA, #F0F0FF); }
+    .calendar-header-cell:nth-child(7) { background: linear-gradient(135deg, #A0CFFF, #B5DCFF); }
+
     .calendar-cell {
-        border: 1px solid #dee2e6;
-        padding: 5px;
-        min-height: 90px;
+        border: 2px solid #F0F4F8;
+        padding: 8px;
+        min-height: 100px;
         background: white;
         font-size: 0.8rem;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
-    .calendar-cell.empty { background-color: #f8f9fa; }
-    .calendar-cell.sunday { background-color: #fff5f5; }
-    .calendar-cell.saturday { background-color: #f0f7ff; }
-    .calendar-cell.holiday { background-color: #ffe6e6; }
+
+    .calendar-cell:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        border-color: #E6E6FA;
+    }
+
+    .calendar-cell.empty {
+        background: linear-gradient(135deg, #FAFBFC, #F5F7FA);
+        opacity: 0.5;
+    }
+
+    .calendar-cell.sunday {
+        background: linear-gradient(135deg, #FFF5F5, #FFEBEB);
+        border-color: #FFD5D5;
+    }
+
+    .calendar-cell.saturday {
+        background: linear-gradient(135deg, #F0F7FF, #E8F4FF);
+        border-color: #C2E0FF;
+    }
+
+    .calendar-cell.holiday {
+        background: linear-gradient(135deg, #FFE8E8, #FFD5D5);
+        border-color: #FFB3B3;
+    }
+
     .day-number {
-        font-weight: bold;
-        font-size: 1rem;
-        margin-bottom: 3px;
+        font-weight: 700;
+        font-size: 1.125rem;
+        margin-bottom: 6px;
+        display: inline-block;
     }
-    .day-number.sunday, .day-number.holiday { color: #dc3545; }
-    .day-number.saturday { color: #0d6efd; }
-    .holiday-name { font-size: 0.65rem; color: #dc3545; }
+
+    .day-number.sunday, .day-number.holiday {
+        color: #FF8A80;
+    }
+
+    .day-number.saturday {
+        color: #6FB1E4;
+    }
+
+    .holiday-name {
+        font-size: 0.7rem;
+        color: #FF8A80;
+        font-weight: 500;
+        display: block;
+        margin-top: 2px;
+    }
+
     .loc-status {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 2px 4px;
-        margin-bottom: 2px;
-        border-radius: 3px;
-        font-size: 0.7rem;
+        padding: 6px 8px;
+        margin-bottom: 4px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        transition: all 0.3s ease;
+        font-weight: 500;
     }
-    .loc-status.working { background-color: #d4edda; }
-    .loc-status.closed { background-color: #f8d7da; }
-    .loc-status.added { background-color: #cce5ff; border: 1px dashed #004085; }
-    .loc-status.removed { background-color: #fff3cd; border: 1px dashed #856404; }
+
+    .loc-status:hover {
+        transform: scale(1.02);
+    }
+
+    .loc-status.working {
+        background: linear-gradient(135deg, #E8F8F3, #D0F0E5);
+        border: 1px solid #B8E6D5;
+        color: #2D8B6F;
+    }
+
+    .loc-status.closed {
+        background: linear-gradient(135deg, #FFF0E8, #FFE5D2);
+        border: 1px solid #FFD5C2;
+        color: #C97D5D;
+    }
+
+    .loc-status.added {
+        background: linear-gradient(135deg, #E8F4FF, #D2EDFF);
+        border: 2px dashed #6FB1E4;
+        color: #4A90C4;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.85; }
+    }
+
+    .loc-status.removed {
+        background: linear-gradient(135deg, #FFF9F0, #FFEFD0);
+        border: 2px dashed #FFD580;
+        color: #B8944D;
+    }
+
     .exception-btn {
-        padding: 0 4px;
-        font-size: 0.6rem;
+        padding: 2px 8px;
+        font-size: 0.7rem;
         line-height: 1.2;
+        border-radius: 6px;
+        border: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        cursor: pointer;
     }
+
+    .exception-btn:hover {
+        transform: scale(1.1);
+    }
+
+    /* Step Sections */
     .step-section {
         margin-bottom: 2rem;
-        padding: 1rem;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        background-color: #fff;
+        padding: 2rem;
+        border: none;
+        border-radius: var(--border-radius-lg);
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow-card);
+        transition: all 0.4s ease;
+        animation: fadeInUp 0.8s ease-out both;
     }
+
+    .step-section:nth-child(1) { animation-delay: 0.1s; }
+    .step-section:nth-child(2) { animation-delay: 0.2s; }
+    .step-section:nth-child(3) { animation-delay: 0.3s; }
+    .step-section:nth-child(4) { animation-delay: 0.4s; }
+    .step-section:nth-child(5) { animation-delay: 0.5s; }
+
+    .step-section:hover {
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-4px);
+    }
+
     .step-header {
         display: flex;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
     }
+
     .step-number {
-        width: 30px;
-        height: 30px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
-        background-color: #4472C4;
+        background: linear-gradient(135deg, #9B7EDE, #6FB1E4);
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        margin-right: 10px;
+        font-weight: 700;
+        margin-right: 16px;
+        font-size: 1.25rem;
+        box-shadow: 0 4px 12px rgba(155, 126, 222, 0.3);
+        transition: all 0.3s ease;
     }
-    .ng-table { font-size: 0.85rem; }
+
+    .step-section:hover .step-number {
+        transform: rotate(360deg) scale(1.1);
+    }
+
+    .step-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        font-size: 1.25rem;
+    }
+
+    /* NG Table */
+    .ng-table {
+        font-size: 0.85rem;
+        border-radius: var(--border-radius-md);
+        overflow: hidden;
+    }
+
     .ng-table th, .ng-table td {
         text-align: center;
         vertical-align: middle;
-        padding: 4px;
+        padding: 8px;
+        transition: all 0.2s ease;
     }
+
+    .ng-table th {
+        font-weight: 600;
+        background: linear-gradient(135deg, var(--color-lavender-light), var(--color-mint-light));
+    }
+
+    .ng-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .ng-table tbody tr:hover {
+        background: var(--color-lavender-light);
+        transform: scale(1.01);
+    }
+
+    .ng-table .form-check-input {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 2px solid #E8EDF5;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .ng-table .form-check-input:checked {
+        background-color: #9B7EDE;
+        border-color: #9B7EDE;
+    }
+
+    .ng-table .form-check-input:hover {
+        border-color: #9B7EDE;
+        transform: scale(1.1);
+    }
+
+    /* Legend */
     .legend-item {
         display: inline-flex;
         align-items: center;
-        margin-right: 15px;
-        font-size: 0.8rem;
+        margin-right: 20px;
+        margin-bottom: 8px;
+        font-size: 0.875rem;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
     }
+
+    .legend-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
     .legend-box {
-        width: 16px;
-        height: 16px;
-        margin-right: 5px;
-        border-radius: 3px;
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Result Card */
+    #resultCard {
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    #resultCard .card-body h6 {
+        color: var(--color-text-primary);
+        font-weight: 600;
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--color-lavender-light);
+    }
+
+    /* Staff Counts */
+    #staffCounts .card {
+        border-radius: 12px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    #staffCounts .card:hover {
+        border-color: var(--color-lavender);
+        transform: translateY(-4px);
+    }
+
+    #staffCounts .progress {
+        border-radius: 8px;
+        overflow: hidden;
+        background: #F0F4F8;
+    }
+
+    #staffCounts .progress-bar {
+        transition: width 0.6s ease;
+    }
+
+    #staffCounts .badge {
+        padding: 0.5rem 0.875rem;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    /* Form Select in Calendar */
+    .loc-status .form-select {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+        height: auto;
+        border-radius: 6px;
+        border: 1px solid #E8EDF5;
+        margin-top: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .loc-status .form-select:hover {
+        border-color: #9B7EDE;
+    }
+
+    .loc-status .form-select:focus {
+        border-color: #9B7EDE;
+        box-shadow: 0 0 0 3px rgba(155, 126, 222, 0.1);
+    }
+
+    /* Saved Shifts List */
+    #savedShiftsList .table {
+        margin-top: 1rem;
+    }
+
+    #savedShiftsList .btn-sm {
+        margin: 0 4px;
+        border-radius: 8px;
+    }
+
+    /* Text Utilities */
+    .text-muted {
+        color: var(--color-text-secondary) !important;
+    }
+
+    small.text-muted {
+        font-size: 0.875rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .calendar-grid {
+            gap: 4px;
+        }
+
+        .calendar-cell {
+            min-height: 80px;
+            padding: 4px;
+            font-size: 0.7rem;
+        }
+
+        .step-section {
+            padding: 1.25rem;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
     }
 </style>
 {% endblock %}
