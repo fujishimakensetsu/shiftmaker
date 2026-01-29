@@ -25,10 +25,13 @@ REMEMBER_COOKIE_DURATION = timedelta(days=7)
 # 認証設定
 APP_PASSWORD = os.environ.get('APP_PASSWORD', 'shift2026')
 
+# Firebase設定
+FIREBASE_KEY_FILE = os.environ.get('FIREBASE_KEY_FILE', 'firebase-key.json')
+
 # Firestore設定
 FIRESTORE_AVAILABLE = False
 try:
-    if os.environ.get('GOOGLE_CLOUD_PROJECT'):
+    if os.environ.get('GOOGLE_CLOUD_PROJECT') or Path(FIREBASE_KEY_FILE).exists():
         from google.cloud import firestore
         FIRESTORE_AVAILABLE = True
 except ImportError:

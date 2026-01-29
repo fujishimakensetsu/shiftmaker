@@ -7,9 +7,11 @@ import json
 from datetime import datetime
 from copy import deepcopy
 
+from pathlib import Path
+
 from config import (
     DATA_DIR, DATA_FILE, SHIFTS_FILE,
-    FIRESTORE_AVAILABLE, DEFAULT_DATA
+    FIRESTORE_AVAILABLE, FIREBASE_KEY_FILE, DEFAULT_DATA
 )
 
 if FIRESTORE_AVAILABLE:
@@ -21,6 +23,10 @@ def get_firestore_client():
     if not FIRESTORE_AVAILABLE:
         return None
     try:
+        # サービスアカウントキーファイルがあれば使用
+        key_path = Path(FIREBASE_KEY_FILE)
+        if key_path.exists():
+            return firestore.Client.from_service_account_json(str(key_path))
         return firestore.Client()
     except Exception as e:
         print(f"Firestore接続エラー: {e}")

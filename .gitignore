@@ -37,3 +37,6 @@ settings.local.json
 
 # Local data (use Firestore in production)
 data/
+
+# Firebase credentials
+firebase-key.json

@@ -5,3 +5,4 @@ jpholiday==0.1.9
 gunicorn==21.2.0
 reportlab==4.0.7
 google-cloud-firestore==2.13.1
+python-dotenv==1.0.0
