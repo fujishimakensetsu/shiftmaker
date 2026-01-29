@@ -48,4 +48,4 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "APP_PASSWORD=${{ secrets.APP_PASSWORD }},SECRET_KEY=${{ secrets.SECRET_KEY }}"
+            --set-env-vars "APP_PASSWORD=${{ secrets.APP_PASSWORD }},SECRET_KEY=${{ secrets.SECRET_KEY }},GOOGLE_CLOUD_PROJECT=${{ env.PROJECT_ID }}"
