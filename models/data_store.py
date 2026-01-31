@@ -238,11 +238,8 @@ def list_shifts():
 
     if db:
         try:
-            docs = db.collection('shifts').order_by(
-                'year', direction=firestore.Query.DESCENDING
-            ).order_by(
-                'month', direction=firestore.Query.DESCENDING
-            ).stream()
+            # インデックス不要のシンプルなクエリを使用し、クライアント側でソート
+            docs = db.collection('shifts').stream()
             for doc in docs:
                 data = doc.to_dict()
                 shifts_list.append({
@@ -251,6 +248,8 @@ def list_shifts():
                     "month": data.get('month'),
                     "updated_at": data.get('updated_at').isoformat() if hasattr(data.get('updated_at'), 'isoformat') else data.get('updated_at')
                 })
+            # クライアント側で年月の降順にソート
+            shifts_list.sort(key=lambda x: (x['year'], x['month']), reverse=True)
             return shifts_list
         except Exception as e:
             print(f"シフト一覧取得エラー: {e}")
