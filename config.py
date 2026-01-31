@@ -7,11 +7,18 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+# .envファイルを読み込み
+from dotenv import load_dotenv
+load_dotenv()
+
 # 基本設定
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / 'data'
 DATA_FILE = DATA_DIR / 'settings.json'
 SHIFTS_FILE = DATA_DIR / 'shifts.json'
+
+# Google Cloud Project ID
+GOOGLE_CLOUD_PROJECT = os.environ.get('GOOGLE_CLOUD_PROJECT', 'shiftmakerai')
 
 # Flask設定
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -31,11 +38,13 @@ FIREBASE_KEY_FILE = os.environ.get('FIREBASE_KEY_FILE', 'firebase-key.json')
 # Firestore設定
 FIRESTORE_AVAILABLE = False
 try:
-    if os.environ.get('GOOGLE_CLOUD_PROJECT') or Path(FIREBASE_KEY_FILE).exists():
+    # GOOGLE_CLOUD_PROJECTが設定されているか、キーファイルがあればFirestoreを有効化
+    if GOOGLE_CLOUD_PROJECT or Path(FIREBASE_KEY_FILE).exists():
         from google.cloud import firestore
         FIRESTORE_AVAILABLE = True
+        print(f"Firestore有効: プロジェクト={GOOGLE_CLOUD_PROJECT}")
 except ImportError:
-    pass
+    print("Firestore SDKがインストールされていません")
 
 # デフォルトデータ
 DEFAULT_DATA = {

@@ -11,7 +11,8 @@ from pathlib import Path
 
 from config import (
     DATA_DIR, DATA_FILE, SHIFTS_FILE,
-    FIRESTORE_AVAILABLE, FIREBASE_KEY_FILE, DEFAULT_DATA
+    FIRESTORE_AVAILABLE, FIREBASE_KEY_FILE, DEFAULT_DATA,
+    GOOGLE_CLOUD_PROJECT
 )
 
 if FIRESTORE_AVAILABLE:
@@ -27,6 +28,9 @@ def get_firestore_client():
         key_path = Path(FIREBASE_KEY_FILE)
         if key_path.exists():
             return firestore.Client.from_service_account_json(str(key_path))
+        # プロジェクトIDを明示的に指定（ADC使用時）
+        if GOOGLE_CLOUD_PROJECT:
+            return firestore.Client(project=GOOGLE_CLOUD_PROJECT)
         return firestore.Client()
     except Exception as e:
         print(f"Firestore接続エラー: {e}")
